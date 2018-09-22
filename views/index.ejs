@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO"
+        crossorigin="anonymous">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+    <script type="text/javascript" src="/socket.io/socket.io.js"></script>
+    <title>Chatroom</title>
+    <script type ="text/javascript">
+    //for the future, change it so that if a user comes after a conversation has started, 
+    //they will get those messages
+        $(document).ready(function () {
+            //asks the client to enter their name
+            var name = prompt("Please enter your name!");
+            var socket = io(); //1
+            //puts the users name at next to welcome
+            $('#name').html(name);
+            //sends name to the server
+            socket.emit('got_new_name', {name: name})
+            //listener to say client joined chat
+            socket.on('new_user', function (data) { 
+                console.log(data.name);
+                var nombre = data.name
+                $('p').append('<span>'+nombre+": Joined the chat!</span><br>");
+            });
+            //When button is clicked send message + name to server
+            $('button').on('click',function(){
+                socket.emit('msg_to_server', {name: name, msg:$('#mesg').val()});
+                $('#mesg').val("");
+                return false;
+            })
+            //recieves/listens for the name and message from the server,prints the clients message + their name
+            socket.on('message', function (data) { 
+                console.log(data.mesg,data.name);
+                //don't have to put these in a var
+                var str = '';
+                str+='<span>'+data.name+": </span>"+data.mesg+"<br>"
+                //appends to the p tag to add the the clients message
+                $('p').append(str);
+            });
+        })
+    </script>
+    <style>
+        .box{
+            border-style: solid;
+            border-width: 1px;
+            display: block;
+            height: 400px;
+            width: 600px;
+            overflow: scroll;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col"></div>
+            <div class="col">
+                <h2>Welcome to the chatroom <span id="name"></span>!</h2>
+                <div class="box">
+                    <p></p>
+                </div>
+                <br>
+                <form>
+                    <textarea class="form-control" id="mesg" rows="3" placeholder="Write message...."></textarea>
+                    <br>
+                    <button type="submit" class="btn btn-primary">Send</button>
+                </form>
+
+            </div>
+            <div class="col"></div>
+        </div>
+    </div>
+
+</body>
+
+</html>
